@@ -4,4 +4,4 @@
 	ChatGPT UTM Remover
 </h1>
 
-Removes utm_source=chatgpt tracking parameters from links on ChatGPT.
+Removes `utm_source=chatgpt` tracking parameters from links on ChatGPT.
