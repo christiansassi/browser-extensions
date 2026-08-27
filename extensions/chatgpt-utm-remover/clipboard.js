@@ -1,9 +1,30 @@
+/**
+ * Page context patch for the ChatGPT UTM Remover extension.
+ *
+ * Run in the main world of a ChatGPT page and strip utm_source=chatgpt from
+ * every URL that leaves the page through the clipboard, whether it is copied
+ * with the copy button, through the Clipboard API, or with Ctrl+C.
+ */
+
 (() => {
 	"use strict";
 
-	// Set by content.js only when the extension is enabled.
+	/**
+	 * Report whether the cleanup is enabled for this page.
+	 *
+	 * content.js sets the data attribute only when the extension is enabled.
+	 *
+	 * @returns {boolean} True when the cleanup is active.
+	 */
 	const active = () => document.documentElement.dataset.utmRemover === "on";
 
+	/**
+	 * Strip a ChatGPT utm_source parameter from one URL.
+	 *
+	 * @param {string} raw - URL as it appears in the copied text.
+	 * @returns {string} Cleaned URL, or raw when it does not parse or carries a
+	 *   different utm_source.
+	 */
 	function cleanUrl(raw) {
 		try {
 			const url = new URL(raw);
@@ -16,6 +37,12 @@
 		}
 	}
 
+	/**
+	 * Strip ChatGPT utm_source parameters from every URL in a block of text.
+	 *
+	 * @param {string} text - Text about to be written to the clipboard.
+	 * @returns {string} Text with each matching URL replaced by its cleaned form.
+	 */
 	function cleanText(text) {
 		if (typeof text !== "string" || text.indexOf("utm_source") === -1) return text;
 		return text.replace(/https?:\/\/[^\s<>"'`)\]]+/g, cleanUrl);

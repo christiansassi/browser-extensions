@@ -1,7 +1,22 @@
+/**
+ * Main world script for the Notion Theme extension, dark variant.
+ *
+ * Answer every prefers-color-scheme query as dark and set the color scheme of
+ * the document, so Notion renders in dark mode whatever the browser reports.
+ */
+
 (() => {
 	const FORCED_THEME = "dark";
 	const nativeMatchMedia = window.matchMedia.bind(window);
 
+	/**
+	 * Resolve what a media query reports under the forced theme.
+	 *
+	 * @param {string} query - Media query text passed to matchMedia.
+	 * @param {boolean} nativeValue - Result the browser would return on its own.
+	 * @returns {boolean} Forced result for a prefers-color-scheme query, and
+	 *   nativeValue for any other query.
+	 */
 	const themeResult = (query, nativeValue) => {
 		const hasLight = /prefers-color-scheme\s*:\s*light/i.test(query);
 		const hasDark = /prefers-color-scheme\s*:\s*dark/i.test(query);
@@ -10,6 +25,13 @@
 		return nativeValue;
 	};
 
+	/**
+	 * Replace matchMedia so color scheme queries follow the forced theme.
+	 *
+	 * @param {string} query - Media query text.
+	 * @returns {MediaQueryList} The native result for an unrelated query, and a
+	 *   proxy reporting the forced theme for a color scheme query.
+	 */
 	window.matchMedia = (query) => {
 		const mql = nativeMatchMedia(query);
 		if (!/prefers-color-scheme/i.test(query)) return mql;
@@ -33,6 +55,11 @@
 		});
 	};
 
+	/**
+	 * Set the color scheme of the document to the forced theme.
+	 *
+	 * @returns {void} Nothing.
+	 */
 	const applyColorScheme = () => {
 		if (document.documentElement) document.documentElement.style.colorScheme = FORCED_THEME;
 	};

@@ -1,3 +1,11 @@
+/**
+ * Service worker for the Notion Theme extension.
+ *
+ * Register the main world script that forces the chosen color scheme, keep the
+ * toolbar icon in step with the settings, and reload a Notion tab whose page
+ * still runs an older setting.
+ */
+
 const COLOR = {
 	"16": "icons/icon16.png",
 	"32": "icons/icon32.png",
@@ -19,6 +27,12 @@ const MATCHES = [
 
 const SCRIPT_ID = "notion-theme-main-world";
 
+/**
+ * Report whether a URL points at the Notion web app.
+ *
+ * @param {string} url - Tab URL to test.
+ * @returns {boolean} True for https URLs on app.notion.com and its subdomains.
+ */
 const isNotion = (url) => {
 	try {
 		const { protocol, hostname } = new URL(url);
@@ -29,11 +43,24 @@ const isNotion = (url) => {
 	}
 };
 
+/**
+ * Read the extension settings from local storage.
+ *
+ * @returns {Promise<{enabled: boolean, theme: string}>} Stored settings, with
+ *   the defaults filled in for values that are not set yet.
+ */
 const getSettings = () => chrome.storage.local.get({
 	enabled: true,
 	theme: "light"
 });
 
+/**
+ * Set the toolbar icon of one tab from its URL and the enabled setting.
+ *
+ * @param {number} tabId - Id of the tab whose icon is updated.
+ * @param {string} url - Current URL of that tab.
+ * @returns {Promise<void>} Resolves once the browser applied the icon.
+ */
 const setTabIcon = async (tabId, url) => {
 	const { enabled } = await getSettings();
 	return chrome.action.setIcon({
@@ -42,6 +69,14 @@ const setTabIcon = async (tabId, url) => {
 	});
 };
 
+/**
+ * Register the main world script that matches the current settings.
+ *
+ * Unregister the previous script first, then register the light or the dark
+ * variant, leaving none registered while the extension is disabled.
+ *
+ * @returns {Promise<void>} Resolves once the registration is up to date.
+ */
 const syncThemeScript = async () => {
 	const { enabled, theme } = await getSettings();
 
@@ -61,6 +96,11 @@ const syncThemeScript = async () => {
 	}]);
 };
 
+/**
+ * Refresh the toolbar icon of every open tab.
+ *
+ * @returns {Promise<void>} Resolves once every tab has been visited.
+ */
 const updateOpenTabIcons = async () => {
 	const tabs = await chrome.tabs.query({});
 	for (const tab of tabs) {
@@ -68,6 +108,11 @@ const updateOpenTabIcons = async () => {
 	}
 };
 
+/**
+ * Fill in missing settings, register the theme script, and set the icons.
+ *
+ * @returns {Promise<void>} Resolves once the extension is ready.
+ */
 const initialize = async () => {
 	const current = await chrome.storage.local.get(["enabled", "theme"]);
 	const patch = {};

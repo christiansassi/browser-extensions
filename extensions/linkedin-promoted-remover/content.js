@@ -1,3 +1,11 @@
+/**
+ * Content script for the LinkedIn Promoted Remover extension.
+ *
+ * Resolve the localized promoted label from the LinkedIn locale bundle, then
+ * remove every feed card carrying that label, both the cards present at load
+ * and the ones LinkedIn appends while scrolling.
+ */
+
 (() => {
 	"use strict";
 
@@ -9,9 +17,20 @@
 	let pendingRoots = new Set();
 	let scanScheduled = false;
 
+	/**
+	 * Report whether the current URL is the LinkedIn feed.
+	 *
+	 * @returns {boolean} True on the root path and on any /feed path.
+	 */
 	const isFeedPage = () =>
 		location.pathname === "/" || location.pathname.startsWith("/feed");
 
+	/**
+	 * Decode the escape sequences of a JavaScript string literal.
+	 *
+	 * @param {string} value - Body of the literal, without the surrounding quotes.
+	 * @returns {string} Decoded text, or value unchanged when it does not parse.
+	 */
 	function decodeJsString(value) {
 		try {
 			return JSON.parse(`"${value}"`);
@@ -20,6 +39,13 @@
 		}
 	}
 
+	/**
+	 * Find the URL of the LinkedIn support locale bundle in the preload HTML.
+	 *
+	 * @param {string} preloadHtml - HTML returned by the preload endpoint.
+	 * @returns {string|null} Absolute URL of the bundle, or null when the script tag
+	 *   is absent.
+	 */
 	function extractSupportUrl(preloadHtml) {
 		const tag = preloadHtml.match(
 			/<script\b(?=[^>]*\bid=["']support-locale-module["'])[^>]*>/i
@@ -29,6 +55,13 @@
 		return src ? new URL(src, location.href).href : null;
 	}
 
+	/**
+	 * Read the localized promoted label out of a locale bundle.
+	 *
+	 * @param {string} source - Source of the support locale bundle.
+	 * @returns {string|null} The label when the bundle defines exactly one
+	 *   i18n_promoted value, null otherwise.
+	 */
 	function extractPromotedLabel(source) {
 		const values = new Set();
 		const re = /["']?i18n_promoted["']?\s*:\s*"((?:\\.|[^"\\])*)"/g;
@@ -40,11 +73,24 @@
 		return values.size === 1 ? [...values][0] : null;
 	}
 
+	/**
+	 * Read the label cached for one locale bundle.
+	 *
+	 * @param {string} supportUrl - URL the label was resolved from.
+	 * @returns {Promise<string|null>} Cached label, or null when none is cached.
+	 */
 	async function getCachedLabel(supportUrl) {
 		const result = await chrome.storage.local.get({ [CACHE_KEY]: {} });
 		return result[CACHE_KEY]?.[supportUrl] || null;
 	}
 
+	/**
+	 * Cache the label for one locale bundle, keeping the eight most recent entries.
+	 *
+	 * @param {string} supportUrl - URL the label was resolved from.
+	 * @param {string} label - Localized promoted label to store.
+	 * @returns {Promise<void>} Resolves once the cache is written.
+	 */
 	async function cacheLabel(supportUrl, label) {
 		const result = await chrome.storage.local.get({ [CACHE_KEY]: {} });
 		const cache = result[CACHE_KEY] || {};
@@ -59,6 +105,15 @@
 		await chrome.storage.local.set({ [CACHE_KEY]: cache });
 	}
 
+	/**
+	 * Resolve the localized promoted label for the current session.
+	 *
+	 * Fetch the preload page, locate the support locale bundle, and read the label
+	 * from it, using the cache when that bundle was already seen.
+	 *
+	 * @returns {Promise<string>} The localized label.
+	 * @throws {Error} When a request fails or no unique label can be resolved.
+	 */
 	async function resolvePromotedLabel() {
 		const preloadResponse = await fetch(PRELOAD_URL, {
 			credentials: "same-origin",
@@ -99,11 +154,25 @@
 		return label;
 	}
 
+	/**
+	 * Report whether a piece of text is the promoted metadata.
+	 *
+	 * @param {string} text - Text content of a candidate element.
+	 * @returns {boolean} True when the text is the label itself or the label
+	 *   followed by further metadata.
+	 */
 	function matchesPromotedText(text) {
 		const value = text.trim();
 		return value === promotedLabel || value.startsWith(`${promotedLabel} `);
 	}
 
+	/**
+	 * Report whether a span is the promoted marker of a feed card.
+	 *
+	 * @param {Element} span - Candidate element found inside a card.
+	 * @returns {boolean} True when the span carries the promoted label as card
+	 *   metadata rather than as body text.
+	 */
 	function isPromotedMarker(span) {
 		if (!(span instanceof HTMLSpanElement)) return false;
 		if (!matchesPromotedText(span.textContent)) return false;
@@ -117,6 +186,13 @@
 		return true;
 	}
 
+	/**
+	 * Remove the feed card that contains a promoted marker.
+	 *
+	 * @param {HTMLSpanElement} span - Marker span inside the card.
+	 * @returns {boolean} True when a card was removed, false when the span is not
+	 *   inside one.
+	 */
 	function removePostFromMarker(span) {
 		const post = span.closest('[role="listitem"]');
 		if (!post) return false;
@@ -129,6 +205,12 @@
 		return true;
 	}
 
+	/**
+	 * Remove one feed card when it is a promoted post.
+	 *
+	 * @param {Element} post - Feed card to inspect.
+	 * @returns {void} Nothing. A promoted card is removed from the document.
+	 */
 	function scanPost(post) {
 		if (!promotedLabel || !isFeedPage()) return;
 		if (!(post instanceof Element) || !post.isConnected) return;
@@ -142,12 +224,25 @@
 		}
 	}
 
+	/**
+	 * Queue one feed card for the next scan.
+	 *
+	 * @param {Element} post - Candidate card. Anything that is not a feed card is
+	 *   ignored.
+	 * @returns {void} Nothing.
+	 */
 	function addPendingPost(post) {
 		if (!(post instanceof Element)) return;
 		if (post.getAttribute("role") !== "listitem") return;
 		pendingRoots.add(post);
 	}
 
+	/**
+	 * Queue every feed card affected by one inserted node.
+	 *
+	 * @param {Node} node - Node LinkedIn added to the document.
+	 * @returns {void} Nothing.
+	 */
 	function collectPostsFromAddedNode(node) {
 		if (!(node instanceof Element)) return;
 
@@ -166,6 +261,13 @@
 		}
 	}
 
+	/**
+	 * Queue one scan of the cards waiting to be inspected.
+	 *
+	 * Calls made before that scan runs collapse into a single pass.
+	 *
+	 * @returns {void} Nothing.
+	 */
 	function scheduleScan() {
 		if (scanScheduled) return;
 		scanScheduled = true;
@@ -181,12 +283,22 @@
 		}, 0);
 	}
 
+	/**
+	 * Scan every feed card currently in the document.
+	 *
+	 * @returns {void} Nothing.
+	 */
 	function scanExistingPosts() {
 		for (const post of document.querySelectorAll('[role="listitem"]')) {
 			scanPost(post);
 		}
 	}
 
+	/**
+	 * Watch the feed for cards added while scrolling, then scan the ones present.
+	 *
+	 * @returns {void} Nothing.
+	 */
 	function startObserver() {
 		observer = new MutationObserver((mutations) => {
 			if (!isFeedPage()) return;
@@ -206,8 +318,8 @@
 		});
 
 		// Start observing first to avoid a race, then scan cards already present
-		// when the extension initializes. We intentionally do not observe
-		// characterData because LinkedIn changes text constantly and it is costly.
+		// when the extension initializes. Do not observe characterData, since
+		// LinkedIn changes text constantly and watching it is costly.
 		observer.observe(document.documentElement, {
 			childList: true,
 			subtree: true
@@ -216,6 +328,12 @@
 		scanExistingPosts();
 	}
 
+	/**
+	 * Resolve the promoted label and start removing cards.
+	 *
+	 * @returns {Promise<void>} Resolves once the observer runs, or immediately when
+	 *   the label cannot be resolved.
+	 */
 	async function start() {
 		try {
 			promotedLabel = await resolvePromotedLabel();

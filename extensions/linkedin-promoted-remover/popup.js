@@ -1,3 +1,10 @@
+/**
+ * Popup script for the LinkedIn Promoted Remover extension.
+ *
+ * Render the toggle and the status line for the active tab, then store the new
+ * value and reload that tab when the toggle changes.
+ */
+
 const toggle = document.getElementById("toggle");
 const popupIcon = document.getElementById("popup-icon");
 const statusText = document.getElementById("status-text");
