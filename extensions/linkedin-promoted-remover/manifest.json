@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Promoted Remover",
+  "version": "0.2.9",
+  "description": "Removes promoted posts from the LinkedIn feed.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://static.licdn.com/*"
+  ],
+  "action": {
+    "default_title": "LinkedIn Promoted Remover",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16-bw.png",
+      "32": "icons/icon32-bw.png",
+      "48": "icons/icon48-bw.png",
+      "128": "icons/icon128-bw.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

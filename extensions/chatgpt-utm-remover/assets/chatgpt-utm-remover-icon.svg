@@ -1,0 +1,15 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a855f7"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+    <linearGradient id="handle" x1="9.062" y1="23.728" x2="16.613" y2="37.331" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#8a8f99"/><stop offset="1" stop-color="#4a4e56"/></linearGradient>
+    <linearGradient id="tip" x1="25.773" y1="13.055" x2="30.637" y2="23.149" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#eef1f7"/><stop offset="1" stop-color="#bcc4cf"/></linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="url(#bg)"/>
+  <g transform="translate(9,20) scale(2.1)">
+    <path d="M5,42.414l-1.414,-1.414c-0.781,-0.781 -0.781,-2.047 0,-2.828l17.207,-17.207l4.243,4.243l-17.208,17.206c-0.781,0.781 -2.047,0.781 -2.828,0z" fill="url(#handle)"/>
+    <path d="M33,11.586l1.414,1.414c0.781,0.781 0.781,2.047 0,2.828l-9.379,9.379l-4.243,-4.243l9.379,-9.379c0.782,-0.78 2.048,-0.78 2.829,0.001z" fill="url(#tip)"/>
+  </g>
+  <path d="M101,21 Q104.6,29.4 113,33 Q104.6,36.6 101,45 Q97.4,36.6 89,33 Q97.4,29.4 101,21 Z" fill="#fde047" opacity="1.0" stroke="#fde047" stroke-width="2.64" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M60,17.5 Q62.55,23.45 68.5,26 Q62.55,28.55 60,34.5 Q57.45,28.55 51.5,26 Q57.45,23.45 60,17.5 Z" fill="#ffffff" opacity="1.0" stroke="#ffffff" stroke-width="1.87" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M94,66 Q95.8,70.2 100,72 Q95.8,73.8 94,78 Q92.2,73.8 88,72 Q92.2,70.2 94,66 Z" fill="#fde047" opacity="0.95" stroke="#fde047" stroke-width="1.32" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
