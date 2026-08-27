@@ -1,5 +1,6 @@
-<h1>
-	<img src="icons/icon128.png" width="64" height="64" align="middle" alt="Notion Theme logo">
+<h1 align="center">
+	<img src="icons/icon128.png" width="64" height="64" alt="Notion Theme logo">
+	<br>
 	Notion Theme
 </h1>
 

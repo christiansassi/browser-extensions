@@ -1,5 +1,6 @@
-<h1>
-	<img src="icons/icon128.png" width="64" height="64" align="middle" alt="LinkedIn Promoted Remover logo">
+<h1 align="center">
+	<img src="icons/icon128.png" width="64" height="64" alt="LinkedIn Promoted Remover logo">
+	<br>
 	LinkedIn Promoted Remover
 </h1>
 
