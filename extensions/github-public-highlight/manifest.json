@@ -1,0 +1,46 @@
+{
+	"manifest_version": 3,
+	"name": "GitHub Public Highlight",
+	"version": "1.1.0",
+	"description": "Highlights public repository badges.",
+	"icons": {
+		"16": "icons/icon16.png",
+		"32": "icons/icon32.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png"
+	},
+	"host_permissions": [
+		"https://github.com/*"
+	],
+	"action": {
+		"default_title": "GitHub Public Highlight",
+		"default_icon": {
+			"16": "icons/icon16-dim.png",
+			"32": "icons/icon32-dim.png",
+			"48": "icons/icon48-dim.png",
+			"128": "icons/icon128-dim.png"
+		},
+		"default_popup": "popup.html"
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"content_scripts": [
+		{
+			"matches": [
+				"https://github.com/*"
+			],
+			"css": [
+				"content.css"
+			],
+			"js": [
+				"content.js"
+			],
+			"run_at": "document_idle"
+		}
+	],
+	"permissions": [
+		"storage",
+		"activeTab"
+	]
+}

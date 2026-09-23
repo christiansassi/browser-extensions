@@ -1,0 +1,4 @@
+[data-github-public-highlight] {
+	color: var(--fgColor-success, var(--color-success-fg, #1a7f37)) !important;
+	border-color: var(--fgColor-success, var(--color-success-fg, #1a7f37)) !important;
+}
