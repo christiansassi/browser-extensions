@@ -1,0 +1,68 @@
+{
+	"manifest_version": 3,
+	"name": "Twitter Tracker Remover",
+	"version": "1.0.0",
+	"description": "Removes query parameters from X and Twitter post links when you copy or share them.",
+	"icons": {
+		"16": "icons/icon16.png",
+		"32": "icons/icon32.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png"
+	},
+	"action": {
+		"default_title": "Twitter Tracker Remover",
+		"default_popup": "popup.html",
+		"default_icon": {
+			"16": "icons/icon16-bw.png",
+			"32": "icons/icon32-bw.png",
+			"48": "icons/icon48-bw.png",
+			"128": "icons/icon128-bw.png"
+		}
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"permissions": [
+		"storage",
+		"activeTab"
+	],
+	"host_permissions": [
+		"https://x.com/*",
+		"https://www.x.com/*",
+		"https://twitter.com/*",
+		"https://www.twitter.com/*"
+	],
+	"content_scripts": [
+		{
+			"matches": [
+				"https://x.com/*",
+				"https://www.x.com/*",
+				"https://twitter.com/*",
+				"https://www.twitter.com/*"
+			],
+			"js": [
+				"content.js"
+			],
+			"run_at": "document_start"
+		},
+		{
+			"matches": [
+				"https://x.com/*",
+				"https://www.x.com/*",
+				"https://twitter.com/*",
+				"https://www.twitter.com/*"
+			],
+			"js": [
+				"sharing.js"
+			],
+			"run_at": "document_start",
+			"world": "MAIN"
+		}
+	],
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "twitter-tracker-remover@local",
+			"strict_min_version": "128.0"
+		}
+	}
+}
